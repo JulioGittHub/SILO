@@ -71,7 +71,7 @@ footer{padding:5px}
 <div class="metric"><small>Esperando ingreso</small><strong id="mIngreso">0</strong></div>
 <div class="metric"><small>En circuito de planta</small><strong id="mPlanta">0</strong></div>
 <div class="metric"><small>Esperando balanza de salida</small><strong id="mBalanza">0</strong></div>
-<div class="metric"><small>Neto recibido hoy · t</small><strong id="mNeto">0</strong></div>
+<div class="metric"><small>Neto recibido hoy · t (incluye viajes cerrados)</small><strong id="mNeto">0</strong></div>
 </div>
 <section id="newPanel" class="panel" hidden>
 <h2>Nuevo viaje</h2>
@@ -168,7 +168,7 @@ function render(){
     <td>Bruto: ${num(t.bruto)}<small>Tara: ${num(t.tara)}</small><small><b>Neto: ${num(t.neto)}</b></small></td>
     <td>${index<9?(authorized?`<button data-id="${esc(t.id)}">${esc(actionLabels[index])}</button>`:`${esc(actionLabels[index])}<small>${esc(roleLabels[owners[index]])}</small>`):'✓ Circuito completo'}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="6">Sin viajes en esta selección. Usá “+ Registrar viaje”.</td></tr>';
+  }).join('')||'<tr><td colspan="6">Sin viajes en este filtro. Para consultar los finalizados, seleccioná “Viajes cerrados” o “Todos los viajes”.</td></tr>';
   const groups={};
   for(const t of trucks.filter(t=>t.neto!=null)){
     const key=JSON.stringify([t.cereal,t.destino||'Sin ubicación']);
