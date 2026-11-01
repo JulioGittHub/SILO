@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SILO · Circuito del camión</title>
+<style>
+:root{font-family:system-ui,sans-serif;color:#173b31;background:#f1f4ed}
+*{box-sizing:border-box}body{margin:0}
+header{background:#123c32;color:white;padding:18px 4%;display:flex;justify-content:space-between;align-items:center;gap:15px}
+h1{font-size:32px;letter-spacing:5px;margin:0}
+header p{margin:4px 0;font-size:14px;color:#c9dbd1}
+.tag{background:#dfec86;color:#234335;border-radius:20px;padding:7px 13px;font-size:12px}
+main{max-width:1550px;margin:auto;padding:20px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+button{font:inherit;font-weight:600;border:0;border-radius:7px;padding:10px 14px;background:#17644e;color:white;cursor:pointer}
+button:hover{filter:brightness(.92)}button:disabled{opacity:.5;cursor:wait}
+nav button{background:white;color:#214b3b;border:1px solid #ccd8ca}
+nav button.active{background:#17644e;color:white}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.metric{background:white;border:1px solid #dbe3d4;padding:12px 16px;border-radius:10px}
+.metric small{display:block;color:#64796e}.metric strong{font-size:25px}
+.panel{background:white;border:1px solid #dbe3d4;padding:20px;border-radius:12px;margin-bottom:16px}
+h2{font-size:21px;margin:0 0 8px}
+.muted,footer{font-size:13px;color:#637b6c}
+.flow{display:flex;gap:6px;overflow:auto;padding:4px 0 16px}
+.step{white-space:nowrap;font-size:12px;background:#e5ebdd;border-radius:6px;padding:8px}
+.step b{margin-left:6px}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13px;text-align:left}
+th{font-size:11px;text-transform:uppercase;color:#61786a;letter-spacing:.4px}
+td,th{padding:12px 9px;border-bottom:1px solid #e7ece1;vertical-align:top}
+td small{display:block;color:#637b6c;margin-top:4px}
+td button{font-size:12px;white-space:nowrap}
+.badge{display:inline-block;background:#edf0df;border-radius:16px;padding:6px 9px;white-space:nowrap}
+.done{background:#d9f0dc}.waiting{background:#fff0bd}
+form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{font-size:13px;font-weight:600}
+input,select{display:block;width:100%;margin-top:6px;padding:11px;border:1px solid #bacbbb;border-radius:6px;font:inherit;background:white}
+.wide{grid-column:1/-1}.notice{padding:12px;margin-bottom:14px;background:#e0eed7;border-radius:8px}
+#error{background:#ffe5dc;color:#8b2f1f}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.toolbar select{width:auto;margin:0}
+#balance{padding:10px;background:#edf3e3;border-radius:7px;margin:12px 0}
+dialog{border:0;border-radius:12px;padding:25px;width:min(470px,94vw);box-shadow:0 15px 80px #0005}
+dialog::backdrop{background:#123b3277}
+dialog form{display:block}dialog label{display:block;margin-bottom:14px}
+.actions{display:flex;gap:10px;margin-top:18px}
+details{margin-top:7px;font-size:12px}summary{cursor:pointer;color:#17644e}
+footer{padding:5px}
+@media(max-width:750px){header{align-items:flex-start;flex-direction:column}main{padding:12px}.metrics{grid-template-columns:repeat(2,1fr)}form{grid-template-columns:1fr}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+<div><h1>SILO<span style="color:#dfec86">.</span></h1><p>Sistema Integrado de Logística Operativa</p></div>
+<span class="tag">Cereales La Pelada · Demostración</span>
+</header>
+<main>
+<nav>
+<button data-view="recepcion" class="active">Recepción</button>
+<button data-view="balanza">Balanza y patio</button>
+<button data-view="secretaria">Secretaría</button>
+<button data-view="direccion">Dirección</button>
+<button data-view="nuevo">+ Registrar viaje</button>
+</nav>
+<div id="error" class="notice" role="alert" hidden></div>
+<div id="success" class="notice" role="status" hidden></div>
+<div class="metrics">
+<div class="metric"><small>En viaje</small><strong id="mViaje">0</strong></div>
+<div class="metric"><small>Esperando ingreso</small><strong id="mIngreso">0</strong></div>
+<div class="metric"><small>En circuito de planta</small><strong id="mPlanta">0</strong></div>
+<div class="metric"><small>Esperando balanza de salida</small><strong id="mBalanza">0</strong></div>
+<div class="metric"><small>Neto recibido hoy · t</small><strong id="mNeto">0</strong></div>
+</div>
+<section id="newPanel" class="panel" hidden>
+<h2>Nuevo viaje</h2>
+<p class="muted">La carga declarada es orientativa. El neto recibido se calcula con los dos pesajes.</p>
+<form id="newForm">
+<label>Momento del registro<select name="tipo"><option value="llegada">El camión llegó: anunciar</option><option value="viaje">Salió de origen: en viaje</option></select></label>
+<label>Transportista<input name="chofer" required maxlength="120"></label>
+<label>Patente<input name="patente" required maxlength="20"></label>
+<label>Productor / remitente<input name="productor" required maxlength="120"></label>
+<label>Origen / establecimiento<input name="origen" required maxlength="120"></label>
+<label>Cereal<select name="cereal" required><option value="">Seleccionar</option><option>Soja</option><option>Maíz</option><option>Trigo</option><option>Girasol</option><option>Sorgo</option><option>Otro</option></select></label>
+<label>Carga declarada en origen · kg<input name="declarado" type="number" min="1" max="100000" placeholder="Opcional"></label>
+<label>Remito / carta de porte<input name="remito" maxlength="120" placeholder="Referencia opcional"></label>
+<button type="submit" class="wide">Registrar viaje</button>
+</form>
+</section>
+<section id="directionPanel" class="panel" hidden>
+<h2>Cereal recibido por ubicación</h2>
+<p class="muted">Acumulado de viajes con pesaje neto confirmado. No representa stock disponible: todavía no se descuentan reservas ni despachos a puerto.</p>
+<div class="table-wrap"><table><thead><tr><th>Cereal</th><th>Ubicación de descarga</th><th>Neto recibido · t</th><th>Viajes</th></tr></thead><tbody id="grainRows"></tbody></table></div>
+</section>
+<section id="board" class="panel">
+<div class="toolbar"><h2 id="title">Recepción y habilitación</h2>
+<select id="filter" aria-label="Filtrar viajes"><option value="activos">Viajes abiertos</option><option value="todos">Todos los viajes</option><option value="cerrados">Viajes cerrados</option></select></div>
+<p id="sync" class="muted">Conectando…</p>
+<div id="flow" class="flow"></div>
+<div id="balance"></div>
+<div class="table-wrap"><table>
+<thead><tr><th>Viaje / camión</th><th>Origen / carga</th><th>Estado</th><th>Espera actual</th><th>Pesajes · kg</th><th>Próxima acción</th></tr></thead>
+<tbody id="rows"></tbody>
+</table></div>
+</section>
+<footer>Prototipo: usar datos de demostración. Vistas por tarea, sin autenticación. Coordinación de balanza manual, sin conexión al equipo. Registra referencias documentales; no emite certificados oficiales. IA pendiente de integración.</footer>
+</main>
+<dialog id="dialog">
+<h2 id="dialogTitle"></h2>
+<form id="stepForm"><div id="fields"></div><div class="actions"><button type="submit">Confirmar</button><button type="button" id="cancel">Cancelar</button></div><p id="dialogError" role="alert" style="color:#982f20"></p></form>
+</dialog>
+<script>
+const stages=['En viaje','Anunciado','Habilitado','Pesado lleno','En descarga','Espera de balanza','Llamado a balanza','Pesado vacío','Documentación entregada','Salió'];
+const actionLabels=['Anunciar llegada','Habilitar / emitir ticket','Registrar peso lleno','Iniciar descarga','Terminar descarga','Llamar a balanza','Registrar peso vacío','Registrar documentación','Confirmar salida'];
+const owners=['recepcion','recepcion','balanza','balanza','balanza','balanza','balanza','secretaria','secretaria'];
+const roleLabels={recepcion:'Recepción',balanza:'Balanza y patio',secretaria:'Secretaría'};
+let trucks=[],view='recepcion',selected=null;
+const el=id=>document.getElementById(id);
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=value=>value==null?'—':Number(value).toLocaleString('es-AR',{maximumFractionDigits:3});
+const date=value=>value?new Date(value).toLocaleString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'}):'—';
+const day=value=>new Date(value).toLocaleDateString('es-AR',{timeZone:'America/Argentina/Buenos_Aires'});
+async function api(url,body){
+  const r=await fetch(url,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});
+  const data=await r.json();if(!r.ok)throw Error(data.error||'No se pudo completar.');
+  return data;
+}
+function render(){
+  const today=day(Date.now());
+  el('mViaje').textContent=trucks.filter(t=>t.estado==='En viaje').length;
+  el('mIngreso').textContent=trucks.filter(t=>['Anunciado','Habilitado'].includes(t.estado)).length;
+  el('mPlanta').textContent=trucks.filter(t=>stages.indexOf(t.estado)>=3&&t.estado!=='Salió').length;
+  el('mBalanza').textContent=trucks.filter(t=>['Espera de balanza','Llamado a balanza'].includes(t.estado)).length;
+  el('mNeto').textContent=num(trucks.filter(t=>t.neto!=null&&day(t.pesajeFinal||t.salida||t.ingreso)===today).reduce((s,t)=>s+t.neto,0)/1000);
+  el('flow').innerHTML=stages.map(s=>`<span class="step">${esc(s)} <b>${trucks.filter(t=>t.estado===s).length}</b></span>`).join('');
+  const called=trucks.find(t=>t.estado==='Llamado a balanza');
+  el('balance').textContent=called?'Balanza reservada para salida: '+called.patente+' · '+called.ticket:'Sin turno de salida asignado. El balancero confirma la disponibilidad física antes de pesar.';
+  const filter=el('filter').value;
+  const visible=trucks.filter(t=>filter==='todos'||(filter==='cerrados'?t.estado==='Salió':t.estado!=='Salió'));
+  el('rows').innerHTML=visible.map(t=>{
+    const index=stages.indexOf(t.estado);
+    const last=t.historial?.at(-1)?.fecha||t.ingreso;
+    const minutes=Math.max(0,Math.floor((Date.now()-new Date(last))/60000));
+    const authorized=view===owners[index];
+    const history=(t.historial||[]).map(h=>`${esc(h.estado)} · ${esc(date(h.fecha))}`).join('<br>');
+    const stateClass=t.estado==='Salió'?'done':t.estado.includes('Espera')||t.estado==='Anunciado'?'waiting':'';
+    return `<tr>
+    <td><b>${esc(t.patente)}</b><small>${esc(t.chofer)}</small><small>Viaje ${esc(t.ticket)}</small><details><summary>Ver trazabilidad</summary>${history}<br>Documento: ${esc(t.certificado||'Pendiente')}</details></td>
+    <td><b>${esc(t.cereal)}</b> · ${esc(t.productor)}<small>${esc(t.origen)}</small><small>Declarado: ${num(t.declarado)} kg</small><small>Remito: ${esc(t.remito||'Sin registrar')}</small></td>
+    <td><span class="badge ${stateClass}">${esc(t.estado)}</span><small>${esc(t.destino||'Descarga sin asignar')}</small>${t.habilitado?'<small>Ticket habilitado</small>':''}</td>
+    <td>${t.estado==='Salió'?'Cerrado':minutes+' min'}<small>${esc(date(last))}</small></td>
+    <td>Bruto: ${num(t.bruto)}<small>Tara: ${num(t.tara)}</small><small><b>Neto: ${num(t.neto)}</b></small></td>
+    <td>${index<9?(authorized?`<button data-id="${esc(t.id)}">${esc(actionLabels[index])}</button>`:`${esc(actionLabels[index])}<small>${esc(roleLabels[owners[index]])}</small>`):'✓ Circuito completo'}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="6">Sin viajes en esta selección. Usá “+ Registrar viaje”.</td></tr>';
+  const groups={};
+  for(const t of trucks.filter(t=>t.neto!=null)){
+    const key=JSON.stringify([t.cereal,t.destino||'Sin ubicación']);
+    if(!groups[key])groups[key]={cereal:t.cereal,destino:t.destino||'Sin ubicación',neto:0,count:0};
+    groups[key].neto+=t.neto;groups[key].count++;
+  }
+  el('grainRows').innerHTML=Object.values(groups).map(g=>`<tr><td>${esc(g.cereal)}</td><td>${esc(g.destino)}</td><td>${num(g.neto/1000)}</td><td>${g.count}</td></tr>`).join('')||'<tr><td colspan="4">Todavía no hay pesajes netos confirmados.</td></tr>';
+}
+async function refresh(){
+  try{trucks=await api('/api/camiones');render();el('sync').textContent='Actualizado '+date(Date.now())+' · Sincronización cada 5 segundos';}
+  catch(e){el('sync').textContent='Sin conexión: los datos pueden estar desactualizados.'}
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  view=b.dataset.view;
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));
+  el('newPanel').hidden=view!=='nuevo';el('board').hidden=view==='nuevo';
+  el('directionPanel').hidden=view!=='direccion';
+  el('title').textContent=({recepcion:'Recepción y habilitación',balanza:'Pesajes y coordinación de descarga',secretaria:'Verificación documental y salida',direccion:'Control del circuito completo'})[view]||'';
+  render();
+});
+el('filter').onchange=render;
+el('newForm').onsubmit=async e=>{
+  e.preventDefault();const b=e.submitter;b.disabled=true;el('error').hidden=true;
+  try{
+    const t=await api('/api/camiones',Object.fromEntries(new FormData(e.target)));
+    e.target.reset();el('success').textContent='Viaje registrado: '+t.ticket+' · '+t.estado;el('success').hidden=false;
+    document.querySelector('[data-view="recepcion"]').click();await refresh();
+  }catch(err){el('error').textContent=err.message;el('error').hidden=false}finally{b.disabled=false}
+};
+el('rows').onclick=e=>{
+  const b=e.target.closest('button[data-id]');if(!b)return;
+  selected=trucks.find(t=>t.id===b.dataset.id);
+  el('dialogTitle').textContent=selected.patente+' · '+actionLabels[stages.indexOf(selected.estado)];
+  el('dialogError').textContent='';
+  let fields='<p>Confirmar avance de este viaje.</p>';
+  if(selected.estado==='Anunciado')fields='<p>Habilitar el ingreso con ticket <b>'+esc(selected.ticket)+'</b>.</p>';
+  if(selected.estado==='Habilitado')fields='<label>Peso lleno · kg<input name="bruto" type="number" min="1" max="100000" required></label><label>Destino de descarga<input name="destino" required maxlength="120" placeholder="Ej.: Silo 3"></label>';
+  if(selected.estado==='Espera de balanza')fields='<p>Confirmá que la balanza está libre. Se reservará el turno de salida para este camión.</p>';
+  if(selected.estado==='Llamado a balanza')fields='<label>Peso vacío · kg<input name="tara" type="number" min="1" max="'+(selected.bruto-1)+'" required></label><p>Peso lleno registrado: '+num(selected.bruto)+' kg.</p>';
+  if(selected.estado==='Pesado vacío')fields='<p>Neto recibido: <b>'+num(selected.neto)+' kg</b>. Verificá los datos y la documentación antes de confirmar.</p><label>Referencia del certificado / comprobante entregado<input name="certificado" required maxlength="120" placeholder="Ej.: DEMO-001"></label><p class="muted">Este registro no genera un certificado oficial.</p>';
+  el('fields').innerHTML=fields;el('dialog').showModal();
+};
+el('cancel').onclick=()=>el('dialog').close();
+el('stepForm').onsubmit=async e=>{
+  e.preventDefault();const b=e.submitter;b.disabled=true;
+  try{
+    const t=await api('/api/camiones/'+selected.id,{...Object.fromEntries(new FormData(e.target)),estadoAnterior:selected.estado});
+    el('dialog').close();el('success').textContent=t.ticket+' · '+t.estado;el('success').hidden=false;await refresh();
+  }catch(err){el('dialogError').textContent=err.message;await refresh()}finally{b.disabled=false}
+};
+refresh();setInterval(refresh,5000);
+</script>
+</body>
+</html>
