@@ -5,7 +5,7 @@ Prototipo desarrollado durante la hackatón DonWeb Day 2026.
 Inspirado en la recepción de cereales de Compañía de Cereales La Pelada.
 
 ## Demo pública
-http://dwday-15612388.online
+https://dwday-15612388.online
 
 ## Qué resuelve
 Centraliza el seguimiento del camión desde origen hasta su salida:
