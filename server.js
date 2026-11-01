@@ -102,6 +102,7 @@ app.post('/api/camiones/:id',(req,res)=>{
   save(trucks.map(t=>t.id===item.id?item:t));
   res.json(item);
 });
+app.use('/api/asistente', require('./asistente')(() => trucks));
 app.use((err,req,res,next)=>{
   console.error(err.message);
   res.status(500).json({error:'No se pudo completar la operación.'});

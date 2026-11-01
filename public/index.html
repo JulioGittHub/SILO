@@ -104,6 +104,21 @@ footer{padding:5px}
 <tbody id="rows"></tbody>
 </table></div>
 </section>
+
+<section class="panel" aria-labelledby="iaTitulo">
+  <h2 id="iaTitulo">Asistente SILO</h2>
+  <p class="muted">Consultá el estado de un viaje o el próximo paso del circuito. El asistente orienta; las operaciones se confirman desde cada área.</p>
+  <p id="iaEstado" class="notice" role="status">Consultando disponibilidad…</p>
+  <form id="iaForm">
+    <label class="wide">Tu consulta
+      <input id="iaPregunta" required maxlength="1000"
+        placeholder="Ej.: ¿Qué pasó con el camión AB456CD?">
+    </label>
+    <button id="iaEnviar" type="submit">Consultar al asistente</button>
+  </form>
+  <p id="iaRespuesta" role="status" style="white-space:pre-wrap;line-height:1.6"></p>
+</section>
+<script src="/asistente-ui.js" defer></script>
 <footer>Prototipo: usar datos de demostración. Vistas por tarea, sin autenticación. Coordinación de balanza manual, sin conexión al equipo. Registra referencias documentales; no emite certificados oficiales. IA pendiente de integración.</footer>
 </main>
 <dialog id="dialog">
