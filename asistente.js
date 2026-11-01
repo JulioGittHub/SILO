@@ -16,7 +16,7 @@ module.exports = function crearAsistente(obtenerCamiones) {
     res.json({
       configurado: Boolean(configurado()),
       mensaje: configurado()
-        ? 'Configurado; conexión pendiente de verificar mediante una consulta.'
+        ? 'Asistente configurado para consultar los datos actuales de SILO.'
         : 'Asistente preparado. Esperando habilitación de la API.'
     });
   });

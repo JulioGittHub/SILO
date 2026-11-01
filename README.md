@@ -5,7 +5,7 @@ Prototipo desarrollado durante la hackatón DonWeb Day 2026.
 Inspirado en la recepción de cereales de Compañía de Cereales La Pelada.
 
 ## Demo pública
-http://66.97.32.143
+http://dwday-15612388.online
 
 ## Qué resuelve
 Centraliza el seguimiento del camión desde origen hasta su salida:
@@ -29,9 +29,17 @@ La configuración secreta se guarda fuera del código, en .env.
 
 ## Estado y alcance
 Circuito operativo probado de principio a fin con datos ficticios.
-Integración de IA pendiente: el acceso provisto devuelve invalid_api_key.
+IA integrada mediante OpenAI Responses API, con gpt-5.4-mini. Consulta los datos actuales de los viajes y explica el circuito sin modificar registros. Respuesta real verificada con el viaje AB456CD.
 Sin autenticación ni conexión física a la balanza.
 Registra referencias documentales; no emite certificados oficiales.
 Las toneladas recibidas no representan stock disponible:
 todavía no se registran reservas ni despachos a puerto.
 Usar exclusivamente datos de demostración.
+
+## Configuración de IA
+Definir OPENAI_API_KEY, OPENAI_MODEL=gpt-5.4-mini y SILO_IA_ACTIVA=1 en .env.
+Para ejecución manual con IA: `node --env-file=.env server.js`.
+En el servidor, systemd carga .env mediante EnvironmentFile.
+La clave no se publica ni se envía al navegador.
+La demo limita las consultas a una cada 5 segundos, una simultánea y 30 intentos por reinicio del servicio.
+El asistente recibe una muestra de hasta 50 viajes; no sustituye la validación del operador.

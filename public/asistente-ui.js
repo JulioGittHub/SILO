@@ -28,8 +28,9 @@
         signal: AbortSignal.timeout(30000)
       });
       const data = await response.json();
+      if (response.ok) status.textContent = 'Conexión verificada · Respuesta generada con IA y datos de SILO.';
       answer.textContent = response.ok
-        ? data.respuesta
+        ? String(data.respuesta).replace(/\*\*/g, '')
         : data.error || 'No se pudo obtener una respuesta.';
     } catch {
       answer.textContent = 'No se pudo conectar. Intentá nuevamente.';
